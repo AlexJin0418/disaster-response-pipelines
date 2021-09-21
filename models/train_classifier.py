@@ -1,5 +1,4 @@
 import sys
-import numpy as np
 import pandas as pd
 from sqlalchemy import create_engine
 
@@ -12,9 +11,8 @@ from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 
 from sklearn.multioutput import MultiOutputClassifier
-from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble._forest import RandomForestClassifier
 from sklearn.pipeline import Pipeline, FeatureUnion
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.feature_extraction.text import CountVectorizer, TfidfTransformer
@@ -23,16 +21,16 @@ from sklearn.metrics import classification_report
 import pickle
 
 def load_data(database_filepath):
-    """Load data from database."""
+    """Load data from database"""
     engine = create_engine('sqlite:///{}'.format(database_filepath))
     df = pd.read_sql_table('disasterTable', engine)
     X = df['message']
-    Y = df.iloc[:, 4:]
+    y = df.iloc[:, 4:]
     category_names = df.columns[4:]
-    return X, Y, category_names
+    return X, y, category_names
 
 def tokenize(text):
-    """Text processing."""
+    """Text processing"""
     text = text.lower() # convert to lowercase
     text = re.sub(r'[^a-zA-Z0-9]', ' ', text) # remove punctuation characters
     tokens = word_tokenize(text) # tokenize
@@ -42,23 +40,30 @@ def tokenize(text):
     return lemmed
 
 def build_model():
-    """Build a machine learning pipeline."""
+    """Build a machine learning pipeline"""
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer=tokenize)),
         ('tfidf', TfidfTransformer()),
         ('clf', MultiOutputClassifier(RandomForestClassifier()))
     ])
+
+    parameters = {
+        'clf__estimator__n_estimators': [100, 200],
+        'clf__estimator__max_features': ['auto', 'sqrt']
+    }
+
+    cv = GridSearchCV(pipeline, param_grid=parameters)
     return pipeline
 
-def evaluate_model(model, X_test, Y_test, category_names):
-    """Test the model and report the results."""
-    Y_pred = model.predict(X_test)
-    for i in range(Y_test.shape[1]):
+def evaluate_model(model, X_test, y_test, category_names):
+    """Test the model and report the results"""
+    y_pred = model.predict(X_test)
+    for i in range(y_test.shape[1]):
         print(category_names[i])
-        print(classification_report(Y_test.iloc[:, i], Y_pred[:, i]))
+        print(classification_report(y_test.iloc[:, i], y_pred[:, i]))
 
 def save_model(model, model_filepath):
-    """Export the model as a pickle file."""
+    """Export the model as a pickle file"""
     with open(model_filepath, 'wb') as file:  
         pickle.dump(model, file)
 
@@ -66,17 +71,17 @@ def main():
     if len(sys.argv) == 3:
         database_filepath, model_filepath = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
-        X, Y, category_names = load_data(database_filepath)
-        X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
+        X, y, category_names = load_data(database_filepath)
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
         
         print('Building model...')
         model = build_model()
         
         print('Training model...')
-        model.fit(X_train, Y_train)
+        model.fit(X_train, y_train)
         
         print('Evaluating model...')
-        evaluate_model(model, X_test, Y_test, category_names)
+        evaluate_model(model, X_test, y_test, category_names)
 
         print('Saving model...\n    MODEL: {}'.format(model_filepath))
         save_model(model, model_filepath)
