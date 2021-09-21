@@ -19,10 +19,14 @@ def clean_data(df):
     for column in categories:
         categories[column] = categories[column].str[-1] # set each value to be the last character of the string
         categories[column] = categories[column].astype(int) # convert column from string to numeric
-    
+
     df = df.drop('categories', axis=1) # drop the original categories column from `df`
     df = pd.concat([df, categories], axis=1) # concatenate the original dataframe with the new `categories` dataframe
-    
+        
+    # note that the related column has 3 levels, so we need to convert it into a binary
+    df['related'] = df['related'].astype('str').str.replace('2', '1')
+    df['related'] = df['related'].astype('int')
+
     df = df.drop_duplicates() # drop duplicates
     
     return df
@@ -30,7 +34,7 @@ def clean_data(df):
 def save_data(df, database_filename):
     """Save the clean dataset into an SQLite database."""
     engine = create_engine('sqlite:///{}'.format(database_filename))
-    df.to_sql('disasterTable', engine, index=False)
+    df.to_sql('disasterTable', engine, index=False, if_exists='replace')
 
 def main():
     if len(sys.argv) == 4:
