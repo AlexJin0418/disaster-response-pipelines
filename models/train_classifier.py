@@ -53,7 +53,7 @@ def build_model():
     }
 
     cv = GridSearchCV(pipeline, param_grid=parameters)
-    return pipeline
+    return cv
 
 def evaluate_model(model, X_test, y_test, category_names):
     """Test the model and report the results"""
