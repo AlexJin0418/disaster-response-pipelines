@@ -1,11 +1,13 @@
 # Udacity Project: Disaster Response Pipelines
 
+<a id='top'></a>
+
 ## Table of Contents
 1. [Introduction](#introduction)
 
 2. [File Descriptions](#file)
 
-3. [Instruction](#instruction)
+3. [Quick Start](#start)
 
 4. [Note](#note)
 
@@ -38,14 +40,15 @@ The file structure of the project:
 
 - models
 |- train_classifier.py
-|- classifier.pkl  # saved model 
+|- classifier.pkl  # saved model (the pickle file on local machine is too large to be uploaded, 
+                                  so we do not have pkl file in this git repository)
 
 - README.md
 ```
 
-<a id='instruction'></a>
+<a id='start'></a>
 
-## Instruction
+## Quick Start
 
 To run the web app, follow the steps:
 
@@ -71,8 +74,10 @@ Note that we do not deploy the web app to a cloud service provider. Instead, we 
 ![data visualization](/screenshot/2.png)
 ![message classification](/screenshot/3.png)
  
-<a id='acknowledgment'></a>
+<a id='acknowledgement'></a>
 
 ## Acknowledgement
 
 The data of the project were offered by **Figure Eight** and the project was based on Udacity degree.
+
+[Back to top](#top)
